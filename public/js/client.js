@@ -36,4 +36,10 @@ function stopRecording() {
     socket.emit('stop', '', (res) => {
         console.log(`Audio data is saved as ${res.filename}`)
     })
+
+    $("#loading").show();
+    $("#container").load('./loading_inner.html', function(){
+        $("#loading").fadeOut();
+        $("#container").fadeIn();
+    });
 }

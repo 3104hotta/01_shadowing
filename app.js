@@ -2,14 +2,21 @@ const express = require('express')
 const http = require('http')
 const path = require('path')
 const app = express()
+var log4js = require('log4js');
+var logger = log4js.getLogger();
+logger.level = 'all';
 const router = require('./routes/router.js');
+require('date-utils');
+const dt = new Date();
+const dateFormatFileName =  dt.toFormat("YYYYMMDDHH24MISS");
+require('dotenv').config();
 
 app.use('/', express.static(path.join(__dirname, 'public')))
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
 server = http.createServer(app).listen(3000, function() {
-    console.log('Example app listening on port 3000')
+    logger.info('Example app listening on port 3000')
 })
 
 // WebSocket サーバを起動
@@ -24,7 +31,7 @@ io.on('connection', (socket) => {
     // 録音開始の合図を受け取ったときの処理
     socket.on('start', (data) => {
         sampleRate = data.sampleRate
-        console.log(`Sample Rate: ${sampleRate}`)
+        logger.info(`Sample Rate: ${sampleRate}`)
     })
 
     // PCM データを受信したときの処理
@@ -41,7 +48,7 @@ io.on('connection', (socket) => {
     // 録音停止の合図を受け取ったときの処理
     socket.on('stop', (data, ack) => {
         const f32array = toF32Array(buffer)
-        const filename = `public/wav/${String(dateFormat(new Date(),'YYYYMMDDSS'))}.wav`
+        const filename = 'public/wav/' + dateFormatFileName  + '.wav'
         exportWAV(f32array, sampleRate, filename)
         ack({ filename: filename })
     })
@@ -71,33 +78,14 @@ const exportWAV = (data, sampleRate, filename) => {
     WavEncoder.encode(audioData).then((buffer) => {
         fs.writeFile(filename, Buffer.from(buffer), (e) => {
             if (e) {
-                console.log(e)
+                logger.error(e)
             } else {
-                console.log(`Successfully saved ${filename}`)
+                logger.info(`Successfully saved ${filename}`)
             }
         })
     })
 }
 
-function dateFormat(date, format) {
-    yyyy = toDoubleDigits(date.getFullYear());
-    mm = toDoubleDigits(date.getMonth() + 1);
-    dd = toDoubleDigits(date.getDate());
-    hh = toDoubleDigits(date.getHours());
-    mi = toDoubleDigits(date.getMinutes());
-    ss = toDoubleDigits(date.getSeconds());
-    format = yyyy + mm + dd + '_' + hh + mi + ss;
-    console.log(format);
-    return format;
-}
-
-var toDoubleDigits = function(num) {
-    num += "";
-    if (num.length === 1) {
-      num = "0" + num;
-    }
-   return num;     
-  };
-
-app.get('/', router);
-app.get('/upload', router);
+app.use('/shadowing', router);
+app.use('/shadowing/', router);
+app.use('/shadowing/', router);
