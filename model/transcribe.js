@@ -8,15 +8,15 @@ var log4js = require('log4js');
 var logger = log4js.getLogger();
 logger.level = 'all';
 
-exports.transcribeService = function(filename) {
+exports.transcribeService = function(dateFilename) {
 
     //json形式で別ファイルのpython(script.py)にデータを渡すことを前提にオブジェクト作成
     var shell = new PythonShell(__dirname+'/script.py', {});
 
     //jsonデータ作成
     var json = {
-        "job_name": filename,
-        "job_uri": "https://shadowing-s3.s3-ap-northeast-1.amazonaws.com/" + filename + '.wav',
+        "job_name": dateFilename,
+        "job_uri": "https://"+ process.env.BUCKET_NAME +".s3-ap-northeast-1.amazonaws.com/" + dateFilename + '.wav',
     };
 
     // scirpt.pyにJSONを送信
@@ -31,7 +31,7 @@ exports.transcribeService = function(filename) {
             "secretAccessKey": process.env.SECRET_ACCESS_KEY,
             "region": process.env.REGION });
 
-        var params = {Bucket: process.env.BUCKET_NAME, Key: filename + '.json'};
+        var params = {Bucket: process.env.BUCKET_NAME, Key: dateFilename + '.json'};
         s3.getSignedUrl('getObject', params, function (err, presiginedUrl) {
             logger.info("The URL is", presiginedUrl);
             
@@ -45,7 +45,7 @@ exports.transcribeService = function(filename) {
                     const obj = JSON.parse(body);
                     logger.info(body);
                     var str = obj.results.transcripts[0].transcript;
-                    db.insert(str.replace(/'/g, "\\'"));
+                    db.insert(str.replace(/'/g, "\\'"), dateFilename);
                     return str;
                 }
             }

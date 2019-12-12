@@ -13,13 +13,9 @@ var bodyParser = require('body-parser');
 var jsonParser = bodyParser.json()
  
 /* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: `Let's Shadowing!` });
-});
-
-router.get('/select',function(req,res,next){
-  db.select().then(result => {
-    res.render('index', { "result" : result , title: `Let's Shadowing!` });
+router.get('/',function(req,res,next){
+  db.selectAll().then(results => {
+    res.render('index', { "results" : results , title: `Let's Shadowing!` });
   }).catch(err => {
     logger.error(err);
   })
@@ -37,6 +33,27 @@ router.get('/transcribe/:filename', jsonParser, function(req, res, next) {
   logger.info('trying to transcribe ' + req.params.filename + '.wav');
   result = transcribe.transcribeService(req.params.filename);
   res.send(result);
+});
+
+/* Delete text mome */
+router.get('/delete/:id', function(req, res, next) {
+  logger.debug('delete : ', req.params.id);
+  db.remove(req.params.id).then(result => {
+    res.redirect('/shadowing');
+  });
+});
+
+/* Update text memo */
+router.get('/update/:filename', function(req, res, next) {
+  logger.debug('update : ', req.params.filename);
+});
+
+/* Select text memo */
+router.get('/select/:id', function(req, res, next) {
+  logger.debug('select : ', req.params.id);
+  db.select(req.params.id).then(result => {
+    res.send(result);
+  });
 });
 
 module.exports = router;

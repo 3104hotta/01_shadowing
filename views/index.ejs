@@ -6,10 +6,58 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
   <script src="/socket.io/socket.io.js" ></script>
-  <script src="./js/client.js" ></script>
 </head>
+
+<script>
+  const socket = io.connect()
+  let processor = null
+  let localstream = null
+
+  function startRecording() {
+      console.log('start recording')
+      context = new window.AudioContext()
+      socket.emit('start', { 'sampleRate': context.sampleRate })
+
+      navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then((stream) => {
+          localstream = stream
+          const input = this.context.createMediaStreamSource(stream)
+          processor = context.createScriptProcessor(4096, 1, 1)
+
+          input.connect(processor)
+          processor.connect(context.destination)
+
+          processor.onaudioprocess = (e) => {
+              const voice = e.inputBuffer.getChannelData(0)
+              socket.emit('send_pcm', voice.buffer)
+          }
+      }).catch((e) => {
+          // "DOMException: Rrequested device not found" will be caught if no mic is available
+          console.log(e)
+      })
+  }
+
+  function stopRecording() {
+      console.log('stop recording')
+      processor.disconnect()
+      processor.onaudioprocess = null
+      processor = null
+      localstream.getTracks().forEach((track) => {
+          track.stop()
+      })
+      socket.emit('stop', '', (res) => {
+          console.log(`Audio data is saved as ${res.filename}`)
+      })
+
+      $("#loading").show();
+      $("#container").load('./loading_inner.html', function(){
+          $("#loading").fadeOut();
+          $("#container").fadeIn();
+      });
+  }
+</script>
+
 <body>
 
 <nav class="navbar navbar-inverse">
@@ -26,15 +74,39 @@
 
 <div class="container">
   <div class="row">
-    <a id="download" class="col-md-6 col-md-offset-3 btn btn-primary" onClick="startRecording()">Start</a>
+    <a id="download" class="col-md-1 col-md-offset-11 btn btn-primary" onClick="startRecording()">Start</a>
   </div>
   <div class="row">
-    <button id="stop" class="col-md-6 col-md-offset-3 btn btn-primary" onClick="stopRecording()">Stop</button>
+    <a id="stop" class="col-md-1 col-md-offset-11 btn btn-primary" onClick="stopRecording()">Stop</a>
   </div>
 </div>
 
-<%= result %>
+</br>
 
+<div class="container">
+    <% if (results !== undefined) { %>
+      <table class="table table-hover table-responsive">
+        <thead>
+            <tr class="table-primary">
+                <th class="col-xs-1">id</th>
+                <th class="col-xs-1">Date</th>
+                <th class="col-xs-10">Text</th>
+                <th class="col-xs-1">Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+        <% results.forEach(function (result) { %>  
+          <tr>
+            <td><a href="/shadowing/select/<%= result.id %>"><%= result.id %></a></td>
+            <td><%= result.date %></td>
+            <td><%= result.text %></td>
+            <td><a href="/shadowing/delete/<%= result.id %>" class="btn btn-danger">del</a></td>
+          </tr>
+        <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+</div>
 <!-- <div id="loading"><img src="../public/image/loading.gif"></div> -->
 
 </body>
