@@ -91,9 +91,32 @@ async function select (id) {
     return result;
 }
 
+/* Update */
+async function update (id,text) {
+
+  var pool = mysql.createPool({
+    connectionLimit: 10,
+    host     : 'localhost',
+    user     : 'root',
+    password : 'root',
+    database: "shadowing_db"
+  });
+
+  pool.query = util.promisify(pool.query);
+  try {
+    var result = await pool.query(`update shadowing_table set text = "${text}" where id = "${id}"`)
+    logger.info(result);
+    pool.end(); // mysql process ended.
+  } catch (err) {
+    throw new Error(err)
+  }
+    return result;
+}
+
 module.exports = {
   insert,
   selectAll,
   remove,
-  select
+  select,
+  update
 }

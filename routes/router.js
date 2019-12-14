@@ -11,11 +11,12 @@ require('dotenv').config();
 var bodyParser = require('body-parser');
 // create application/json parser
 var jsonParser = bodyParser.json()
+router.use(bodyParser.urlencoded({extended: true}));
  
 /* GET home page. */
 router.get('/',function(req,res,next){
   db.selectAll().then(results => {
-    res.render('index', { "results" : results , title: `Let's Shadowing!` });
+    res.render('index', { "results" : results});
   }).catch(err => {
     logger.error(err);
   })
@@ -44,15 +45,19 @@ router.get('/delete/:id', function(req, res, next) {
 });
 
 /* Update text memo */
-router.get('/update/:filename', function(req, res, next) {
-  logger.debug('update : ', req.params.filename);
+router.post('/update/', jsonParser, function(req, res, next) {
+  logger.debug('update : ', req.body.id);
+  logger.debug('update : ', req.body.text);
+  db.update(req.body.id, req.body.text).then(result => {
+    res.redirect('/shadowing');
+  });
 });
 
 /* Select text memo */
 router.get('/select/:id', function(req, res, next) {
   logger.debug('select : ', req.params.id);
   db.select(req.params.id).then(result => {
-    res.send(result);
+    res.render('edit', { text : result[0].text , id : result[0].id});
   });
 });
 
