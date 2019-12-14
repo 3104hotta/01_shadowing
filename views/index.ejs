@@ -5,72 +5,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../public/css/shadowing.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-  <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous"> -->
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
   <script src="/socket.io/socket.io.js" ></script>
-  <!-- <script src="../public/js/client.js" ></script> -->
+  <script type="text/javascript" src="../public/js/client.js" ></script>
 
-  <script>
-    const socket = io.connect()
-    let processor = null
-    let localstream = null
-
-    function startRecording() {
-        console.log('start recording')
-        context = new window.AudioContext()
-        socket.emit('start', { 'sampleRate': context.sampleRate })
-
-        navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then((stream) => {
-            localstream = stream
-            const input = this.context.createMediaStreamSource(stream)
-            processor = context.createScriptProcessor(4096, 1, 1)
-
-            input.connect(processor)
-            processor.connect(context.destination)
-
-            processor.onaudioprocess = (e) => {
-                const voice = e.inputBuffer.getChannelData(0)
-                socket.emit('send_pcm', voice.buffer)
-            }
-        }).catch((e) => {
-            // "DOMException: Rrequested device not found" will be caught if no mic is available
-            console.log(e)
-        })
-    }
-
-    function stopRecording() {
-        console.log('stop recording')
-        processor.disconnect()
-        processor.onaudioprocess = null
-        processor = null
-        localstream.getTracks().forEach((track) => {
-            track.stop()
-        })
-        socket.emit('stop', '', (res) => {
-            console.log(`Audio data is saved as ${res.filename}`)
-            submit(res.filename);
-        })
-
-        // $("#loading").show();
-        // $("#container").load('./loading_inner.html', function(){
-        //     $("#loading").fadeOut();
-        //     $("#container").fadeIn();
-        // });
-    }
-
-    function submit(filename){
-      postData = `filename=${filename.slice(11,25)}`;
-      console.log(postData);
-      $.post( '/shadowing/upload', postData ).done(
-        function( data ) {
-          console.log( data.form );
-      });
-    }
-
-
-  </script>
-  
 </head>
 <body>
 
@@ -83,12 +23,12 @@
 </nav>
 
 <div class="jumbotron text-center">
-  <h1>Press Start Button.
+  <h1 id="record-message">Press Start Button.</h1>
   </div>
   <div class="container-fluid">
     <form>
-      <a class="col-md-4 col-md-offset-4 btn btn-primary btn-lg" onClick="startRecording()">Start</a>
-      <a class="col-md-4 col-md-offset-4 btn btn-default btn-lg" onClick="stopRecording()">Stop</a>
+      <a id="start-button" class="col-md-4 col-md-offset-4 btn btn-primary btn-lg" onClick="startRecording()">Start</a>
+      <a id="stop-button" class="col-md-4 col-md-offset-4 btn btn-default btn-lg" onClick="stopRecording()">Stop</a>
     </form>
   </div>
 </div>

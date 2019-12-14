@@ -16,8 +16,8 @@ transcribe.start_transcription_job(
 while True:
     status = transcribe.get_transcription_job(TranscriptionJobName=jsonData["job_name"])
     if status['TranscriptionJob']['TranscriptionJobStatus'] in ['COMPLETED', 'FAILED']:
-        # transcribe.delete_transcription_job(TranscriptionJobName=jsonData["job_name"])
-        # print('Job was deleted successfully')
+        transcribe.delete_transcription_job(TranscriptionJobName=jsonData["job_name"])
+        print('Job was deleted successfully')
         break
 
 print(status)

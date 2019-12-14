@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var upload = require('../model/upload.js');
+var upload = require('../model/transcribe/upload');
 var transcribe = require('../model/transcribe.js');
 var log4js = require('log4js');
 var logger = log4js.getLogger();

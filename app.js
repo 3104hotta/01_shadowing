@@ -11,7 +11,8 @@ const dt = new Date();
 const dateFormatFileName =  dt.toFormat("YYYYMMDDHH24MISS");
 require('dotenv').config();
 
-app.use('/', express.static(path.join(__dirname, 'public')))
+// app.use('/', express.static(path.join(__dirname, 'public')));
+app.use(express.static(__dirname));
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
