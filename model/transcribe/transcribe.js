@@ -3,6 +3,7 @@ const db = require('../db/mysql.js');
 var log4js = require('log4js');
 var logger = log4js.getLogger();
 var fs  = require('fs');
+const request = require('request');
 require('dotenv').config();
 logger.level = 'all';
 
@@ -15,29 +16,7 @@ awsSdk.config.update(config);
 var transcribeservice = new awsSdk.TranscribeService();
 var s3 = new awsSdk.S3();
 
-async function uploadS3Service (dateFilename) {
-
-  var params = {
-  "Bucket" : process.env.BUCKET_NAME,
-  "Key" : dateFilename + '.wav',
-  "Body" : 'stream'
-  };
-  var options = {partSize: 10 * 1024 * 1024, queueSize: 1};
-  var v= fs.readFileSync("./public/wav/" + dateFilename + '.wav');
-  params.Body=v;
-
-  s3.upload(params, options, function(err, data) {
-      if (err) { 
-        logger.error("[transcribe.js] ", err, err.stack);
-        throw 'Error uploading wav.';
-    } else {
-        logger.info('[transcribe.js] Finish uploading wav.', data);
-        return data;
-    }
-  });
-}
-
-async function startTranscribeService (dateFilename){
+async function startTranscribeJob (dateFilename){
 
   var params = {
     LanguageCode: 'en-US',
@@ -48,6 +27,8 @@ async function startTranscribeService (dateFilename){
     MediaFormat: 'wav',
     OutputBucketName: process.env.BUCKET_NAME,
   };
+
+  await deleteTranscribeJob();
 
   transcribeservice.startTranscriptionJob(params, function(err, data) {
     if (err) { 
@@ -60,7 +41,7 @@ async function startTranscribeService (dateFilename){
   });
 }
 
-async function getTranscribeService (){
+async function getTranscribeJobStatus(dateFilename){
 
   var params = {
     TranscriptionJobName: process.env.TRANSCRIBE_JOB
@@ -73,22 +54,51 @@ async function getTranscribeService (){
           reject('Error getTranscribeService getting transcribe job.');
       } else {
           logger.info('[transcribe.js] getTranscribeService Checking transcribe job status.', data.TranscriptionJob.TranscriptionJobStatus);
+
+          if ( data.TranscriptionJob.TranscriptionJobStatus == 'COMPLETED') { 
+            // const resultURL = data.Media.MediaFileUri;
+             getTranscribeJobResult(dateFilename);
+            // db.insert();
+          }
           resolve(data.TranscriptionJob.TranscriptionJobStatus);
       }
     });
   });
 }
 
-// 非同期処理taskA
-const taskA = (v) => {
-  return new Promise((resolve, reject) => {
-    console.log("taskA",v);
-    v = v+1;
-    resolve(v);
+async function getTranscribeJobResult(dateFilename) {
+  
+  awsSdk.config.update({
+    "accessKeyId": process.env.ACCESS_KEY_ID,
+    "secretAccessKey": process.env.SECRET_ACCESS_KEY,
+    "region": process.env.REGION });
+
+  var params = {Bucket: process.env.BUCKET_NAME, Key: 'transcribeJob.json'};
+  s3.getSignedUrl('getObject', params, function (err, presiginedUrl) {
+      logger.info("The URL is", presiginedUrl);
+      
+      var options = {
+          url: presiginedUrl
+      };
+      
+      // Access to the URL where the result data was saved.
+      function callback(error, response, body) {
+          if (!error && response.statusCode == 200) {
+              const obj = JSON.parse(body);
+              logger.info(body);
+              var str = obj.results.transcripts[0].transcript;
+              db.insert(str.replace(/'/g, "\\'"), dateFilename);
+              return str;
+          }
+      }
+
+      request(options, callback);
   });
 }
 
-function transcribeDeleteService (){
+
+
+async function deleteTranscribeJob (){
 
   var params = {
     TranscriptionJobName: process.env.TRANSCRIBE_JOB
@@ -106,6 +116,7 @@ function transcribeDeleteService (){
 }
 
 module.exports = {
-  startTranscribeService,
-  getTranscribeService,
+  startTranscribeJob,
+  getTranscribeJobStatus,
+  deleteTranscribeJob,
 }

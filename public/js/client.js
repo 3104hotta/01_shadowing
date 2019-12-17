@@ -79,19 +79,32 @@ const socket = io.connect()
  function submitToGetTranscribe(){
 
   dispLoading("Please wait...");
-  
-  setInterval(function() {
+  const filename = $('#shadowing-filename').text();
 
+  timer = setInterval(function() {
+
+  var form = $('<form/>', {action:'/shadowing', method:'get'});
+  form.appendTo(document.body);
+  
   // 非同期処理
   $.ajax({
-    url : `/shadowing/getResult`,
+    url : `/shadowing/getResult/${filename}`,
     type : "get"
   }).then(
     data => { 
-      if( data.status == 'COMPLETED' ) { removeLoading(); }
+      console.log('not complete yet')
+      if( data.status == 'COMPLETED' ) { 
+        removeLoading();
+        clearInterval(timer);
+        form.submit();
+      }
     },
-    error => { console.log('fail get transcribe') }
+    error => { 
+      console.log('fail get transcribe');
+      removeLoading();
+    }
   )}, 2000);
+
 }
 
   function dispLoading(msg){

@@ -35,16 +35,16 @@ router.post('/upload', jsonParser, function(req, res, next) {
 
 router.get('/transcribe/:filename', function(req, res, next) {
   logger.info('[router.js] trying to transcribe the named ' + req.params.filename + '.wav');
-  transcribe.startTranscribeService(req.params.filename).then(result => {
+  transcribe.startTranscribeJob(req.params.filename).then(result => {
     res.status(200).json({ status: result });
   }).catch(e => {
     res.status(500).json({ status: result });
   }); 
 });
 
-router.get('/getResult/', async function(req, res, next) {
+router.get('/getResult/:filename', async function(req, res, next) {
   logger.info('[router.js] trying to get transcribe job status');
-  transcribe.getTranscribeService().then(result => {
+  transcribe.getTranscribeJobStatus(req.params.filename).then(result => {
     res.status(200).json({ status: result });
   }).catch(e => {
     res.status(500).json({ status: e });
