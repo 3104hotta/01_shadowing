@@ -19,7 +19,7 @@ function insert (text, dateFilename) {
   var sql = `INSERT INTO shadowing_table (id,text,date) VALUES ("${id}", "${text}", "${dateFilename}")`;
   pool.query(sql, function (err, result) {
     if (err) throw err;
-    logger.info("1 record inserted");
+    logger.info("[mysql.js] 1 record inserted");
   });
 
 }
@@ -38,7 +38,7 @@ async function selectAll () {
   pool.query = util.promisify(pool.query);
   try {
     var results = await pool.query('select * from shadowing_table')
-    logger.info(results);
+    logger.info('[mysql.js] ',results);
     pool.end(); // mysql process ended.
   } catch (err) {
     throw new Error(err)
@@ -83,7 +83,7 @@ async function select (id) {
   pool.query = util.promisify(pool.query);
   try {
     var result = await pool.query('select * from shadowing_table where id = ?', id)
-    logger.info(result);
+    logger.info('[mysql.js] ', result);
     pool.end(); // mysql process ended.
   } catch (err) {
     throw new Error(err)
@@ -105,7 +105,7 @@ async function update (id,text) {
   pool.query = util.promisify(pool.query);
   try {
     var result = await pool.query(`update shadowing_table set text = "${text}" where id = "${id}"`)
-    logger.info(result);
+    logger.info('[mysql.js] ',result);
     pool.end(); // mysql process ended.
   } catch (err) {
     throw new Error(err)

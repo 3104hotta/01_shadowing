@@ -1,6 +1,6 @@
 const express = require('express')
 const http = require('http')
-const path = require('path')
+const reqest = require('request');
 const app = express()
 var log4js = require('log4js');
 var logger = log4js.getLogger();
@@ -11,13 +11,12 @@ const dt = new Date();
 const dateFormatFileName =  dt.toFormat("YYYYMMDDHH24MISS");
 require('dotenv').config();
 
-// app.use('/', express.static(path.join(__dirname, 'public')));
 app.use(express.static(__dirname));
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
 server = http.createServer(app).listen(3000, function() {
-    logger.info('Example app listening on port 3000')
+    logger.info('[app.js] Example app listening on port 3000')
 })
 
 // WebSocket サーバを起動
@@ -32,7 +31,7 @@ io.on('connection', (socket) => {
     // 録音開始の合図を受け取ったときの処理
     socket.on('start', (data) => {
         sampleRate = data.sampleRate
-        logger.info(`Sample Rate: ${sampleRate}`)
+        logger.info(`[app.js] Sample Rate: ${sampleRate}`)
     })
 
     // PCM データを受信したときの処理
@@ -79,14 +78,15 @@ const exportWAV = (data, sampleRate, filename) => {
     WavEncoder.encode(audioData).then((buffer) => {
         fs.writeFile(filename, Buffer.from(buffer), (e) => {
             if (e) {
-                logger.error(e)
+                logger.error("[transcribe.js] ", e)
             } else {
-                logger.info(`Successfully saved ${filename}`)
+                logger.info(`[app.js] Successfully saved ${filename}`)
             }
         })
     })
 }
 
-app.use('/shadowing', router);
+app.get('/', function(){reqest.get('/shadowing/')});
+app.use('/shadowing/', router);
 app.use('/shadowing/', router);
 app.use('/shadowing/', router);

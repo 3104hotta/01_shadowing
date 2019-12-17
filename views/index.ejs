@@ -26,9 +26,12 @@
   <h1 id="record-message">Press Start Button.</h1>
   </div>
   <div class="container-fluid">
-    <form>
+    <div id='shadowing-form'>
       <a id="start-button" class="col-md-4 col-md-offset-4 btn btn-primary btn-lg" onClick="startRecording()">Start</a>
       <a id="stop-button" class="col-md-4 col-md-offset-4 btn btn-default btn-lg" onClick="stopRecording()">Stop</a>
+      <a id="stop-button" class="col-md-4 col-md-offset-4 btn btn-default btn-lg" onClick="submitToStartTranscribe()">Start Transcribe Job</a>
+      <a id="stop-button" class="col-md-4 col-md-offset-4 btn btn-default btn-lg" onClick="submitToGetTranscribe()">Get Transcribe Status</a>
+      <div id='shadowing-filename' style='display: none;'>value</div>
     </form>
   </div>
 </div>

@@ -1,3 +1,4 @@
+
 const socket = io.connect()
     let processor = null
     let localstream = null
@@ -36,36 +37,62 @@ const socket = io.connect()
         })
         socket.emit('stop', '', (res) => {
             console.log(`Audio data is saved as ${res.filename}`)
-            submit(res.filename);
+            submitToUpload(res.filename);
         })
     }
 
-    function submit(filename){
+    function submitToUpload(filename){
 
-      dispLoading("Please wait...");
+      dispLoading('Please wait...');
 
       // 非同期処理
       $.ajax({
         url : '/shadowing/upload',
         type : "post",
         dataType :"json",
-        data : {filename : filename.slice(11,25) }
-      })
-      // 通信成功時
-      .done( function(data) {
-        console.log("成功しました");
-      })
-      // 通信失敗時
-      .fail( function(data) {
-        console.log("失敗しました");
-      })
-      // 処理終了時
-      .always( function(data) {
-        // Lading 画像を消す
-        removeLoading();
-      });
+        data : { filename : filename.slice(11,25) },
+      }).then(
+        data => {
+          $('#shadowing-filename').text(data.filename);
+          console.log('success upload. filename is ' + $('#shadowing-filename').text() );
+        },
+        error => { console.log('fail upload') }
+      ).then( removeLoading() )
+   }
 
-    }
+   function submitToStartTranscribe(){
+
+    const filename = $('#shadowing-filename').text();
+    console.log(`Pushed start transcribe for ${filename}`);
+    
+    // 非同期処理
+    $.ajax({
+      url : `/shadowing/transcribe/${filename}`,
+      type : "get"
+    }).then(
+      data => { console.log('success start transcribe') },
+      error => { console.log('fail start transcribe') }
+    ).then( removeLoading() )
+
+ }
+
+ function submitToGetTranscribe(){
+
+  dispLoading("Please wait...");
+  
+  setInterval(function() {
+
+  // 非同期処理
+  $.ajax({
+    url : `/shadowing/getResult`,
+    type : "get"
+  }).then(
+    data => { 
+      if( data.status == 'COMPLETED' ) { removeLoading(); }
+    },
+    error => { console.log('fail get transcribe') }
+  )}, 2000);
+}
 
   function dispLoading(msg){
     // 引数なし（メッセージなし）を許容
