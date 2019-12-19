@@ -138,4 +138,14 @@ $(function() {
       console.log(recordMessage.text('Recording Stop.'));
     })
 
+    $('#toggle-textarea').click(function() {
+      $('#input-form').fadeToggle('slow');
+    })
+  
+    $('#toggle-shadowing').click(function() {
+      $('#shadowing-form').fadeToggle('slow');
+    })
+
 });
+
+

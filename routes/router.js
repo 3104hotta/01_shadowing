@@ -76,19 +76,14 @@ router.get('/select/:id', function(req, res, next) {
   });
 });
 
-// function sleep(msec) {
-//   return new Promise(function(resolve) {
+/* Save text message */
+router.post('/textSave', function(req, res, next) {
+  var text = req.body.text;
+  logger.debug('[router.js] text is ', text);
+  db.insert(text.replace(/'/g, "\\'"), '2019120101').then(resutl => {
+    res.redirect('/shadowing');
+  })
 
-//      setTimeout(function() {resolve()}, msec);
-
-//   })
-// }
-
-// async function start() {
- 
-//   await sleep(5000);
-//   console.log('passed 5 seconds.');
-
-// }
+});
 
 module.exports = router;

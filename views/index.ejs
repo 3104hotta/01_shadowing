@@ -24,9 +24,16 @@
 
 <div class="jumbotron text-center">
   <h1 id="record-message">Press Start Button.</h1>
-  </div>
+</div>
+
+
+<div id="toggle-shadowing" class="container">
+  <a class="col-md-12 btn btn-primary">Shadowing</a>
+</div>
+</br>
+
   <div class="container-fluid">
-    <div id='shadowing-form'>
+    <div id='shadowing-form' style="display: none;">
       <a id="start-button" class="col-md-4 col-md-offset-4 btn btn-primary btn-lg" onClick="startRecording()">Start</a>
       <a id="stop-button" class="col-md-4 col-md-offset-4 btn btn-default btn-lg" onClick="stopRecording()">Stop</a>
       <a id="stop-button" class="col-md-4 col-md-offset-4 btn btn-default btn-lg" onClick="submitToStartTranscribe()">Start Transcribe Job</a>
@@ -34,7 +41,21 @@
       <div id='shadowing-filename' style='display: none;'>value</div>
   </div>
 </div>
+
+</br>
+
+<div id="toggle-textarea" class="container">
+  <a class="col-md-12 btn btn-primary">Memo</a>
 </div>
+</br>
+<form action='/shadowing/textSave' method='post' id='input-form' style="display: none;">
+  <div class="container-fluid">
+    <textarea name="text" class="well well-lg col-md-4 col-md-offset-4"></textarea>
+    <div class="col-md-1">
+      <input type="submit" id="input-button" class="col-md-12 btn btn-primary" onClick="submit()"></input>
+    </div>
+  </div>
+</form>
 
 </br>
 

@@ -5,7 +5,7 @@ var logger = log4js.getLogger();
 logger.level = 'all';
 
 /* Insert  */
-function insert (text, dateFilename) {
+async function insert (text, dateFilename) {
 
   var pool = mysql.createPool({
     connectionLimit: 10,

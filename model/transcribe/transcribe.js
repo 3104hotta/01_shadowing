@@ -28,7 +28,7 @@ async function startTranscribeJob (dateFilename){
     OutputBucketName: process.env.BUCKET_NAME,
   };
 
-  await deleteTranscribeJob();
+  // await deleteTranscribeJob();
 
   transcribeservice.startTranscriptionJob(params, function(err, data) {
     if (err) { 
